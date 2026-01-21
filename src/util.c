@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include "../include/util.h"
@@ -99,4 +100,64 @@ int count_stars(const char* str) {
   }
 
   return count;
+}
+
+// Removes the specified 'chars' from the beginning and end of
+// the string. The default is to remove white spaces.
+char* strip_string(const char* str, const char* chars) {
+  if (str == NULL) return NULL;
+
+  bool use_default = (chars == NULL || *chars == '\0');
+  const char* start = str;
+  const char* end = str + strlen(str) - 1;
+
+  // Find the beginning
+  while (*start) {
+    bool remove = false;
+    if (use_default) {
+      remove = (*start == ' ' || *start == '\t' || *start == '\n' ||
+                *start == '\r' || *start == '\f' || *start == '\v');
+    } else {
+      for (const char* p = chars; *p; p++) {
+        if (*p == *start) {
+          remove = true;
+          break;
+        }
+      }
+    }
+
+    if (!remove) break;
+    start++;
+  }
+
+  // Find the end
+  while (end > start) {
+    bool remove = false;
+    if (use_default) {
+      remove = (*end == ' ' || *end == '\t' || *end == '\n' ||
+                *end == '\r' || *end == '\f' || *end == '\v');
+    } else {
+      for (const char* p = chars; *p; p++) {
+        if (*p == *end) {
+          remove = true;
+          break;
+        }
+      }
+    }
+
+    if (!remove) break;
+    end--;
+  }
+
+  // Allocate new string
+  size_t len = (end >= start) ? (end - start + 1) : 0;
+  char* result = malloc(len+1);
+  if (result == NULL) return NULL;
+
+  if (len > 0) {
+    memcpy(result, start, len);
+  }
+  result[len] = '\0';
+
+  return result;
 }
