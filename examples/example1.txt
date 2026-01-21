@@ -1,0 +1,7 @@
+POMO = 30min
+DATE = 21/01/2026
+
+Port = Portugues
+
+Port: ****
+Matematica: **
