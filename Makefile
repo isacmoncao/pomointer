@@ -16,6 +16,9 @@ ${TARGET}: ${OBJS}
 	mkdir -p build
 	${CC} -o build/${TARGET} ${OBJS}
 
+test1:
+	build/${TARGET} ${EXAMPLES}/*
+
 run:
 	build/${TARGET} ${EXAMPLES}/example1.txt
 
