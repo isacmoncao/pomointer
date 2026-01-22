@@ -8,7 +8,7 @@ EXAMPLES = examples
 TARGET = pomointer
 
 %.o: %.c
-	${CC} -c ${CFLAGS} -I{INCLUDE_DIR} $< -o $@
+	${CC} -c ${CFLAGS} -I${INCLUDE_DIR} $< -o $@
 
 all: ${TARGET}
 
