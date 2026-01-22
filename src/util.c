@@ -4,7 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
-#include "../include/util.h"
+#include "util.h"
 
 char** split_string(const char* str, const char delimiter, int* count) {
   // Check for valid input
@@ -190,7 +190,7 @@ int string_to_int(const char* str) {
   }
 
   if (endptr == str) {
-    fprintf(stderr, "Error: no digit found\n");
+    fprintf(stderr, "Error: no digit found at string '%s'\n", str);
     return 0;
   }
 
