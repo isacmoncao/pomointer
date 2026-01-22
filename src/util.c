@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
 #include "../include/util.h"
 
 char** split_string(const char* str, const char delimiter, int* count) {
@@ -176,3 +178,30 @@ char* int_to_string(int n) {
   return str;
 }
 
+int string_to_int(const char* str) {
+  char* endptr;
+  errno = 0;
+
+  long val = strtol(str, &endptr, 10);
+
+  if (errno == ERANGE) {
+    fprintf(stderr, "Error: number out of range\n");
+    return 0;
+  }
+
+  if (endptr == str) {
+    fprintf(stderr, "Error: no digit found\n");
+    return 0;
+  }
+
+  if (*endptr != '\0') {
+    fprintf(stderr, "Warning: extra characters -> %s\n", endptr);
+  }
+
+  if (val > INT_MAX || val < INT_MIN) {
+    fprintf(stderr, "Error: value out int range\n");
+    return 0;
+  }
+
+  return (int)val;
+}
