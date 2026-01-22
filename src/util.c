@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -204,4 +205,22 @@ int string_to_int(const char* str) {
   }
 
   return (int)val;
+}
+
+bool is_empty_str(const char *str) {
+  while (*str) {
+    if (!isspace((unsigned char) *str)) {
+      return false;
+    }
+    str++;
+  }
+  return true;
+}
+
+bool is_comment(const char *str) {
+  while (isspace((unsigned char)*str)) {
+    str++;
+  }
+
+  return (*str == '#');
 }
