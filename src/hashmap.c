@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "../include/hashmap.h"
+#include "hashmap.h"
 
 // ------------------- AUXILIARY FUNCTIONS -------------------------------
 
