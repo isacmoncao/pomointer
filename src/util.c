@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "../include/util.h"
@@ -161,3 +162,17 @@ char* strip_string(const char* str, const char* chars) {
 
   return result;
 }
+
+char* int_to_string(int n) {
+  int length = snprintf(NULL, 0, "%d", n);
+
+  char* str = malloc(length + 1);
+  if (str == NULL) {
+    return NULL;
+  }
+
+  snprintf(str, length+1, "%d", n);
+
+  return str;
+}
+
