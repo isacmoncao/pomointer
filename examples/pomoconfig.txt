@@ -1,0 +1,4 @@
+POMO = 25
+Port = Portugues
+Mat = Matematica
+CS = Computer Science

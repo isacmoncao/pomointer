@@ -1,7 +1,6 @@
-POMO = 30min
-DATE = 21/01/2026
+#include "pomoconfig.txt"
 
-Port = Portugues
-
+DATE = 23/01/2026
 Port: ****
 Matematica: **
+CS: ************

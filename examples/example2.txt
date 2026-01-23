@@ -1,2 +1,6 @@
+#include "pomoconfig.txt"
+
+DATE = 20/01/2026
+
 Port: ***
 Matematica: ****
