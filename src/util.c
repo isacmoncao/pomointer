@@ -168,6 +168,15 @@ char* strip_string(const char* str, const char* chars) {
   return result;
 }
 
+// Trim whitespaces from the left
+char* trim_left(char* str) {
+  while (isspace((unsigned char) *str)) {
+    str++;
+  }
+
+  return str;
+}
+
 char* int_to_string(int n) {
   int length = snprintf(NULL, 0, "%d", n);
 

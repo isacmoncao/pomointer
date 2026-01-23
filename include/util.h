@@ -9,6 +9,7 @@ int count_stars(const char* str);
 char** split_string(const char* str, const char delimiter, int* count);
 char* strip_string(const char* str, const char* chars);
 void free_string_array(char** array);
+char* trim_left(char* str);
 
 // Conversions
 int string_to_int(const char* str);
