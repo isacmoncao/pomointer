@@ -3,6 +3,7 @@
 #include <string.h>
 #include "util.h"
 #include "pomofile.h"
+#include "preprocessor.h"
 
 // AUXILIARY FUNCTIONS PROTOTYPES
 static void print(const char* key, void* value, void* type);
@@ -256,7 +257,7 @@ void free_pomofile(PomoFile* pomofile) {
 }
 
 int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
-  FILE* f = fopen(pomofile->path, "r");
+  FILE* f = preprocess_file(pomofile->path, 0);
   if (f == NULL) {
     fprintf(stderr, "Erro: cannot read file '%s'\n", pomofile->path);
     return -1;
