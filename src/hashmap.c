@@ -193,6 +193,27 @@ void hashmap_destroy(HashMap* map, void (*free_value)(void*)) {
   free(map);
 }
 
+int hashmap_merge_inplace(HashMap* dest, HashMap* src) {
+  if (!dest || !src) return 0;
+  int added_elements = 0;
+  for (int i = 0; i < src->capacity; i++) {
+    Entry* entry = src->buckets[i];
+    while (entry) {
+      void* current_value = hashmap_get(dest, entry->key);
+
+      if (current_value) {
+        hashmap_put(dest, entry->key, entry->value);
+      } else {
+        hashmap_put(dest, entry->key, entry->value);
+        added_elements++;
+      }
+
+      entry = entry->next;
+    }
+  }
+  return added_elements;
+}
+
 // -------------------------- ITERATION FUNCTIONS -----------------------------
 
 void hashmap_foreach(HashMap* map, void (*callback)(const char*, void*, void*), void* user_data) {

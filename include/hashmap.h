@@ -32,6 +32,7 @@ int hashmap_remove(HashMap* map, const char* key, void (*free_value)(void*));
 int hashmap_contains(HashMap* map, const char* key);
 int hashmap_size(HashMap* map);
 void hashmap_destroy(HashMap* map, void (*free_value)(void*));
+int hashmap_merge_inplace(HashMap* dest, HashMap* src);
 
 
 void hashmap_foreach(HashMap* map, void (*callback)(const char*, void*, void*), void* user_data);
