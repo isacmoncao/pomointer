@@ -5,6 +5,8 @@ SRCS != find src -name '*.c'
 OBJS = ${SRCS:.c=.o}
 EXAMPLES = examples
 
+PREFIX = /usr/local
+
 TARGET = pomointer
 
 %.o: %.c
@@ -21,6 +23,12 @@ test1:
 
 run:
 	build/${TARGET} ${EXAMPLES}/example1.txt
+
+install: all
+	cp build/${TARGET} ${PREFIX}/bin
+
+uninstall:
+	rm ${PREFIX}/bin/${TARGET}
 
 clean:
 	rm -rf build ${OBJS}
