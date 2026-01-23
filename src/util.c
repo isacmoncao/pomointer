@@ -5,6 +5,8 @@
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
+#include <time.h>
+#include <sys/stat.h>
 #include "util.h"
 
 char** split_string(const char* str, const char delimiter, int* count) {
@@ -223,4 +225,126 @@ bool is_comment(const char *str) {
   }
 
   return (*str == '#');
+}
+
+static bool is_leap_year(int y) {
+  bool div4 = y % 4 == 0;
+  bool div400 = y % 400 == 0;
+  bool div100 = y % 100 == 0;
+  
+  if (div4 && (div400 || !div100))
+    return true;
+
+  return false;
+}
+
+static bool is_valid_day(int d) {
+  return (d >= 1 && d <= 31);
+}
+
+static bool is_valid_month(int m) {
+  return (m >= 1 && m <= 12);
+}
+
+static bool is_valid_year(int y) {
+  return (y >= 0 && y <= 9999);
+}
+
+static bool is_valid_date(int day, int month, int year) {
+  // dd/mm/yyyy
+  if (!is_valid_day(day) || !is_valid_month(month) || !is_valid_year(year)) {
+    return false;
+  }
+
+  // Day 31 in months of 30 days
+  if (day > 30 && (month == 4 || month == 6 || month == 9 || month == 11)) {
+    return false;
+  }
+
+  // February
+  if (month == 2) {
+    if (is_leap_year(year) && day > 29) {
+      return false;
+    } else if (!is_leap_year(year) && day > 28) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+time_t string_to_time(const char *str) {
+  struct tm time = {0};
+  int d, m, y;
+
+  if (sscanf(str, "%d/%d/%d", &d, &m, &y) != 3) {
+    return (time_t)-1; 
+  }
+
+  if (!is_valid_day(d) || !is_valid_month(m) || !is_valid_year(y)) {
+    return (time_t)-1;
+  } 
+
+  if (!is_valid_date(d, m, y)) {
+    return (time_t)-1;
+  }
+
+  if (y >= 0 && y < 100 ) {
+     // Adjust 0-69 are related to 2000, and 70-99 are related to 1900
+     y += (y < 70) ? 2000 : 1900;
+  }
+
+  time.tm_mday = d;
+  time.tm_mon = m - 1; // Adjust to 0-11  
+  time.tm_year = y - 1900; // Years since 1900
+  time.tm_isdst = -1;
+
+  time_t result = mktime(&time);
+
+  if (result == (time_t)-1) {
+    return (time_t)-1;
+  }
+
+  return result;
+}
+
+char* time_to_string(time_t time) {
+  struct tm* t = localtime(&time);
+  char* buffer = malloc(80 * sizeof(char));
+  if (buffer == NULL) {
+    return NULL;
+  }
+  strftime(buffer, 80, "%d/%m/%Y", t);
+  return buffer;
+}
+
+time_t get_file_mod_date(const char* path) {
+  struct stat file_info;
+
+  // Check if it exists
+  if (stat(path, &file_info) == -1) {
+    fprintf(stderr, "Error: cannot acces '%s'\n", path);
+    return -1;
+  }
+
+  time_t modtime = file_info.st_mtime;
+
+  return modtime;
+}
+
+void print_file(const char* path) {
+  FILE* f = fopen(path, "r");
+  if (f == NULL) {
+    fprintf(stderr, "Error: cannot read '%s'\n", path);
+    return ;
+  }
+
+  char buffer[1024];
+  while (fgets(buffer, sizeof(buffer), f) != NULL) {
+    buffer[strcspn(buffer, "\n")] = '\0';
+
+    printf("%s\n", buffer);
+  }
+
+  fclose(f);
 }
