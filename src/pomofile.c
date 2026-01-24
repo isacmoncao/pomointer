@@ -79,7 +79,7 @@ static void process_register(const char* key, void* value, void* pomodoro_durati
   for (int i = 0; i < pomodoros; i++) {
     printf("🍅");
   }
-  printf(" -> %d minutes\n\n", pomodoros * *duration);
+  printf(" -> %d minutes\n", pomodoros * *duration);
 }
 
 static LineType classify_line(char *line) {
@@ -324,7 +324,7 @@ void process_global_registers(const char* key, void* value, void* glb_pomodoros)
   HashMap* registers = (HashMap*)value;
   int pomodoro_duration = string_to_int(hashmap_get(g_pomodoros, key));
   
-  printf("%s\n", key);
+  printf("\n%s -> 🍅 = %d minutes\n\n", key, pomodoro_duration);
   hashmap_foreach(registers, process_register, (void*)&pomodoro_duration);
 }
 
