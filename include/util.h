@@ -24,5 +24,6 @@ bool is_comment(const char* str);
 // Files
 time_t get_file_mod_date(const char* path);
 void print_file(const char* path);
+void extract_directory(const char* path, char* dir_buff, size_t buffer_size);
 
 #endif

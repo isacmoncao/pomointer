@@ -357,3 +357,33 @@ void print_file(const char* path) {
 
   fclose(f);
 }
+
+// This function extracts the directory from a path
+void extract_directory(const char *path, char *dir_buff, size_t buffer_size) {
+  if (path == NULL || dir_buff == NULL) {
+    if (buffer_size > 0) {
+      dir_buff[0] = '\0';
+      return ;
+    }
+  } 
+
+  strncpy(dir_buff, path, buffer_size - 1);
+  dir_buff[buffer_size - 1] = '\0';
+
+  // Find last '/' or '\' if on Windows
+  char* last_slash = strrchr(dir_buff, '/');
+
+#ifdef _WIN32
+  char* last_backslash = strrch(dir_buff, '\\');
+  if (last_backslash != NULL && (last_slash == NULL || last_backslash > last_slash)) {
+    last_slash = last_backslash;
+  } 
+#endif
+
+  if (last_slash != NULL) {
+    *last_slash = '\0'; // Ends at directory
+  } else {
+    // No '/' because it's at the current directory
+    strncpy(dir_buff, ".", buffer_size);
+  }
+}
