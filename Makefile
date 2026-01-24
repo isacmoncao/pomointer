@@ -18,8 +18,8 @@ ${TARGET}: ${OBJS}
 	mkdir -p build
 	${CC} -o build/${TARGET} ${OBJS}
 
-test1:
-	build/${TARGET} ${EXAMPLES}/*
+run_many:
+	build/${TARGET} ${EXAMPLES}/example*
 
 run:
 	build/${TARGET} ${EXAMPLES}/example1.txt
