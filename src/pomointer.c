@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   }
 
   int num_files = argc - 1;
-  pomofiles_array = (PomoFile*)malloc((argc - 1) * sizeof(PomoFile));
+  pomofiles_array = (PomoFile*)malloc((num_files) * sizeof(PomoFile));
   global_registers = hashmap_create(16, 0.75);
   global_pomodoro_durations = hashmap_create(16, 0.75);
 
