@@ -7,30 +7,30 @@ EXAMPLES = examples
 
 PREFIX = /usr/local
 
-TARGET = pomointer
+PROGRAM_NAME = pomointer
 
 %.o: %.c
 	${CC} -c ${CFLAGS} -I${INCLUDE_DIR} $< -o $@
 
-all: ${TARGET}
+all: ${PROGRAM_NAME}
 
-${TARGET}: ${OBJS}
+${PROGRAM_NAME}: ${OBJS}
 	mkdir -p build
-	${CC} -o build/${TARGET} ${OBJS}
+	${CC} -o build/${PROGRAM_NAME} ${OBJS}
 
 run_many:
-	build/${TARGET} ${EXAMPLES}/example*
+	build/${PROGRAM_NAME} ${EXAMPLES}/example*
 
 run:
-	build/${TARGET} ${EXAMPLES}/example1.txt
+	build/${PROGRAM_NAME} ${EXAMPLES}/example1.txt
 
 install: all
-	cp build/${TARGET} ${PREFIX}/bin
+	cp build/${PROGRAM_NAME} ${PREFIX}/bin
 
 uninstall:
-	rm ${PREFIX}/bin/${TARGET}
+	rm ${PREFIX}/bin/${PROGRAM_NAME}
 
 clean:
 	rm -rf build ${OBJS}
 
-.PHONY: clean run all
+.PHONY: all run run_many install uninstall clean
