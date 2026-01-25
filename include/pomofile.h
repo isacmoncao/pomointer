@@ -16,7 +16,7 @@ typedef struct {
   HashMap* assignments;
   HashMap* registers;
   time_t date;
-  int pomodoro_size; // Minutes
+  int pomodoro_duration; // Minutes
 } PomoFile;
 
 int pomofile_init(PomoFile* file, const char* path);
@@ -24,4 +24,5 @@ int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos);
 void free_pomofile(PomoFile* pomofile);
 void print_pomofile(PomoFile* pomofile);
 void process_global_registers(const char* key, void* value, void* glb_pomodoros);
+
 #endif

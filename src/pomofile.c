@@ -208,7 +208,7 @@ int pomofile_init(PomoFile* file, const char* path) {
   }
 
   file->date = get_file_mod_date(path);
-  file->pomodoro_size = 30;
+  file->pomodoro_duration = 30;
   return 0;
 }
 
@@ -234,7 +234,7 @@ void print_pomofile(PomoFile* pomofile) {
     printf("NONE\n");
   }
   printf("Date: %s\n", time_to_string(pomofile->date));
-  printf("Pomodoro duration: %d\n", pomofile->pomodoro_size);
+  printf("Pomodoro duration: %d\n", pomofile->pomodoro_duration);
   printf("----------------------------------------------\n");
 }
 
@@ -251,7 +251,7 @@ void free_pomofile(PomoFile* pomofile) {
 
   pomofile->path = NULL;
   pomofile->date = -1;
-  pomofile->pomodoro_size = 0;
+  pomofile->pomodoro_duration = 0;
   pomofile->assignments = NULL;
   pomofile->registers = NULL;
 }
@@ -292,7 +292,7 @@ int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
   }
 
   if (ispomodefined(pomofile->assignments)) {
-    pomofile->pomodoro_size = get_pomodoro_duration(pomofile->assignments);
+    pomofile->pomodoro_duration = get_pomodoro_duration(pomofile->assignments);
   }
   if (isdatedefined(pomofile->assignments)) {
     pomofile->date = get_date(pomofile->assignments);
@@ -312,7 +312,7 @@ int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
   }
 
   // Pomodoro duration for that day
-  hashmap_put(pomos, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_size));
+  hashmap_put(pomos, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_duration));
 
   fclose(f); 
   return 1;
