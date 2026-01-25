@@ -4,7 +4,13 @@
 #include <stdio.h>
 #include "hashmap.h"
 
-// ------------------- AUXILIARY FUNCTIONS -------------------------------
+/* ---------------------- AUXILIARY FUNCTIONS DECLARATIONS------------------------------- */
+
+static unsigned long hash(const char* str, int capacity);
+static Entry* create_entry(const char* key, void* value);
+static void free_entry(Entry* entry, void (*free_value)(void*));
+
+/* -----------------------------AUXILIARY FUNCTIONS ------------------------------- */
 
 // Hash function(djb2 algorithm)
 static unsigned long hash(const char* str, int capacity) {
@@ -42,9 +48,9 @@ static void free_entry(Entry* entry, void (*free_value)(void*)) {
   free(entry);
 }
 
-// --------------------- BASIC OPERATIONS ---------------------------
+/* ---------------------- AUXILIARY FUNCTIONS END ------------------------------- */
 
-// Create a new HashMap
+// Creates a new HashMap
 HashMap* hashmap_create(int initial_capacity, float load_factor) {
   HashMap* map = (HashMap*)malloc(sizeof(HashMap));
   if (!map) return NULL;
@@ -62,7 +68,7 @@ HashMap* hashmap_create(int initial_capacity, float load_factor) {
   return map;
 }
 
-// Resize hashmap
+// Resizes hashmap
 void hashmap_resize(HashMap* map) {
   int old_capacity = map->capacity;
   Entry** old_buckets = map->buckets;
@@ -214,7 +220,7 @@ int hashmap_merge_inplace(HashMap* dest, HashMap* src) {
   return added_elements;
 }
 
-// -------------------------- ITERATION FUNCTIONS -----------------------------
+/* -------------------------- ITERATION FUNCTIONS ----------------------------- */
 
 void hashmap_foreach(HashMap* map, void (*callback)(const char*, void*, void*), void* user_data) {
   if (!map || !callback) return ;
@@ -264,19 +270,19 @@ HashMapIterator* hashmap_iterator_create(HashMap* map) {
   return iter;
 }
 
-// Get current key
+// Gets current key
 const char* hashmap_iterator_key(HashMapIterator* iter) {
   if (!iter || !iter->current_entry) return NULL;
   return iter->current_entry->key;
 }
 
-// Get current value
+// Gets current value
 void* hashmap_iterator_value(HashMapIterator* iter) {
   if (!iter || !iter->current_entry) return NULL;
   return iter->current_entry->value;
 }
 
-// Free iterator
+// Frees an iterator
 void hashmap_iterator_destroy(HashMapIterator* iter) {
   if (iter) free(iter);
 }

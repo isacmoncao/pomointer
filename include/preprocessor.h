@@ -6,4 +6,5 @@
 #define MAX_INCLUDE_DEPTH 10
 
 FILE* preprocess_file(const char* path, int depth);
+
 #endif

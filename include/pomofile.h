@@ -19,10 +19,10 @@ typedef struct {
   int pomodoro_duration; // Minutes
 } PomoFile;
 
-int pomofile_init(PomoFile* file, const char* path);
-int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos);
+int pomofile_init(PomoFile* pomofile, const char* path);
+int parse_file(PomoFile* pomofile, HashMap* global_registers, HashMap* global_pomodoro_durations);
 void free_pomofile(PomoFile* pomofile);
 void print_pomofile(PomoFile* pomofile);
-void process_global_registers(const char* key, void* value, void* glb_pomodoros);
+void process_global_registers(const char* date, void* registers, void* global_pomodoro_durations);
 
 #endif

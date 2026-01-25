@@ -1,2 +1,8 @@
 - Options
+  -h --help
+  -s --subject <subject_name>
+  -a --after <date>
+  -b --before <date>
+  -t --time (min|hour) 
+  -e --export (csv|html) [file_name]
 - Man page

@@ -1,48 +1,50 @@
-#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 #include "util.h"
 #include "pomofile.h"
 #include "preprocessor.h"
 
-// AUXILIARY FUNCTIONS PROTOTYPES
+/* -------------------------- AUXILIARY FUNCTIONS DECLARATIONS -------------------------------- */
+
 static void print(const char* key, void* value, void* type);
-static int merge_pomodoros(HashMap* dest, HashMap* src);
+static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters);
 static int search_abbvr(HashMap* assignments, HashMap* registers);
-static void process_register(const char* key, void* value, void* pomodoro_duration);
+static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration);
 
 static int read_assignment(char* line, HashMap* assignments);
 static int read_register(char* line, HashMap* registers);
-static int get_pomodoro_duration(HashMap* assignments);
-static time_t get_date(HashMap* assignments);
 static LineType classify_line(char* line);
 
-static bool ispomodefined(HashMap* assignments);
-static bool isdatedefined(HashMap* assignments);
+static bool is_pomodoro_duration_defined(HashMap* assignments);
+static bool is_date_defined(HashMap* assignments);
 
-// ------------------ AUXILIARY FUNCTIONS -------------------------------------------
+static int get_pomodoro_duration(HashMap* assignments);
+static time_t get_date(HashMap* assignments);
+
+/* ---------------------------------- AUXILIARY FUNCTIONS ------------------------------------ */
+
 static void print(const char* key, void* value, void* type) {
   if (strcmp("ASSIGNMENT", (const char*)type) == 0) {
     printf("\"%s\":\"%s\",\n", key, (char*)value);
   } else {
-    int pomodoros = string_to_int((char*)value);
-    printf("\"%s\":\"%d\",\n", key, pomodoros);
+    int pomodoros_ammount = string_to_int((char*)value);
+    printf("\"%s\":\"%d\",\n", key, pomodoros_ammount);
   }
 }
 
-static int merge_pomodoros(HashMap* dest, HashMap* src) {
-  if (!dest || !src ) return 0;
+static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters) {
+  if (!old_counters || !updated_counters ) return 0;
   int added_elements = 0;
-  for (int i = 0; i < src->capacity; i++) {
-    Entry* entry = src->buckets[i];
+  for (int i = 0; i < updated_counters->capacity; i++) {
+    Entry* entry = updated_counters->buckets[i];
     while (entry) {
-      int current_value = string_to_int(hashmap_get(dest, entry->key));
+      int current_value = string_to_int(hashmap_get(old_counters, entry->key));
 
       if (current_value) {
         int new_value = current_value + string_to_int(entry->value);
-        hashmap_put(dest, entry->key, int_to_string(new_value));
+        hashmap_put(old_counters, entry->key, int_to_string(new_value));
       } else {
-        hashmap_put(dest, entry->key, entry->value);
+        hashmap_put(old_counters, entry->key, entry->value);
         added_elements++;
       }
       entry = entry->next;
@@ -71,21 +73,19 @@ static int search_abbvr(HashMap* assignments, HashMap* registers) {
   return modified;
 }
 
-static void process_register(const char* key, void* value, void* pomodoro_duration) {
-  // Key is the date, value is the ammount of pomodoros
-  printf("%s:\n", key);
-  int pomodoros = string_to_int((const char*)value);
-  int* duration = (int*)pomodoro_duration;
-  for (int i = 0; i < pomodoros; i++) {
+static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration) {
+  printf("%s:\n", date);
+  int p_ammount = string_to_int(pomodoros_ammount);
+  int duration = *(int*)pomodoro_duration;
+  for (int i = 0; i < p_ammount; i++) {
     printf("🍅");
   }
-  printf(" -> %d minutes\n", pomodoros * *duration);
+  printf(" -> %d minutes\n", p_ammount * duration);
 }
 
 static LineType classify_line(char *line) {
-  char* start = line; 
-  // Skips initial spaces
-  while(isspace(*start)) start++; 
+  // Skips initial whitespaces
+  line = trim_left(line);
   
   char* has_equal = strchr(line, '=');
   char* has_colon = strchr(line, ':');
@@ -102,15 +102,14 @@ static LineType classify_line(char *line) {
 }
 
 static int read_assignment(char* line, HashMap* assignments) {
-  // Reads an assignment at the line and put it in a hashmap
   int parts_count;
   char** parts = split_string(line, '=', &parts_count);
 
   if (parts && parts_count == 2) {
-    char* key = strip_string(parts[0], NULL);
-    char* val = strip_string(parts[1], NULL);
+    char* subject_name_abbreviation = strip_string(parts[0], NULL);
+    char* subject_name = strip_string(parts[1], NULL);
 
-    hashmap_put(assignments, key, (void*)val);
+    hashmap_put(assignments, subject_name_abbreviation, subject_name);
     free_string_array(parts);
 
     return 1;
@@ -121,26 +120,22 @@ static int read_assignment(char* line, HashMap* assignments) {
 }
 
 static int read_register(char *line, HashMap *registers) {
-  // Reads a register at the line and put it in a hashmap
   int parts_count;
   char** parts = split_string(line, ':', &parts_count);
   
   if (parts && parts_count == 2) {
-    char* key = strip_string(parts[0], NULL);
-    char* val = strip_string(parts[1], NULL);
+    char* subject = strip_string(parts[0], NULL);
+    char* stars_string = strip_string(parts[1], NULL);
 
-    // If it exists
-    if (hashmap_get(registers, key) != NULL) {
-      // Update it
-      int old = string_to_int((char*)hashmap_get(registers, key));
-      int current = count_stars(val);
-      int new = old + current;
-      hashmap_put(registers, key, int_to_string(new));
+    // If it exists, update its value
+    if (hashmap_get(registers, subject) != NULL) {
+      int old_pomodoros_ammount = string_to_int(hashmap_get(registers, subject));
+      int current_pomodoros_ammount = count_stars(stars_string);
+      int updated_pomodoros_ammount = old_pomodoros_ammount + current_pomodoros_ammount;
+      hashmap_put(registers, subject, int_to_string(updated_pomodoros_ammount));
     } else {
-      hashmap_put(registers,
-                  key,
-                  int_to_string(count_stars(val))
-                  );
+      // If not, create it
+      hashmap_put(registers, subject, int_to_string(count_stars(stars_string)));
     }
 
     free_string_array(parts);
@@ -151,7 +146,7 @@ static int read_register(char *line, HashMap *registers) {
   return 0;
 }
 
-static bool ispomodefined(HashMap* assignments) {
+static bool is_pomodoro_duration_defined(HashMap* assignments) {
   bool exists = hashmap_contains(assignments, "POMO");
 
   if (!exists) {
@@ -169,21 +164,20 @@ static bool ispomodefined(HashMap* assignments) {
 }
 
 static int get_pomodoro_duration(HashMap *assignments) {
-  char* val = (char*)hashmap_get(assignments, "POMO");
-  int minutes = string_to_int(val);
+  int minutes = string_to_int(hashmap_get(assignments, "POMO"));
 
   return minutes;
 }
 
-static bool isdatedefined(HashMap* assignments) {
+static bool is_date_defined(HashMap* assignments) {
   bool exists = hashmap_contains(assignments, "DATE");
 
   if (!exists) {
     return false;
   }
 
-  char* val = (char*)hashmap_get(assignments, "DATE");
-  if (string_to_time(val) == (time_t)-1) {
+  char* date = (char*)hashmap_get(assignments, "DATE");
+  if (string_to_time(date) == -1) {
     return false;
   }
 
@@ -191,11 +185,11 @@ static bool isdatedefined(HashMap* assignments) {
 }
 
 static time_t get_date(HashMap* assignments) {
-  char* val = (char*)hashmap_get(assignments, "DATE");
-  return string_to_time(val);
+  char* date = hashmap_get(assignments, "DATE");
+  return string_to_time(date);
 }
 
-// -----------------------------------------------------------------------
+/* ---------------------------------- AUXILIARY FUNCTIONS END ---------------------------------- */
 
 int pomofile_init(PomoFile* file, const char* path) {
   file->path = path;
@@ -256,7 +250,7 @@ void free_pomofile(PomoFile* pomofile) {
   pomofile->registers = NULL;
 }
 
-int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
+int parse_file(PomoFile* pomofile, HashMap* global_registers, HashMap* global_pomodoro_durations) {
   FILE* f = preprocess_file(pomofile->path, 0);
   if (f == NULL) {
     fprintf(stderr, "Erro: cannot read file '%s'\n", pomofile->path);
@@ -270,9 +264,6 @@ int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
     line_n++;
 
     if (is_empty_str(line)) {
-      continue;
-    }
-    if (is_comment(line)) {
       continue;
     }
     
@@ -291,41 +282,40 @@ int parse_file(PomoFile* pomofile, HashMap* reg, HashMap* pomos) {
     }
   }
 
-  if (ispomodefined(pomofile->assignments)) {
+  if (is_pomodoro_duration_defined(pomofile->assignments)) {
     pomofile->pomodoro_duration = get_pomodoro_duration(pomofile->assignments);
   }
-  if (isdatedefined(pomofile->assignments)) {
+  if (is_date_defined(pomofile->assignments)) {
     pomofile->date = get_date(pomofile->assignments);
   }
 
   search_abbvr(pomofile->assignments, pomofile->registers);
 
   // If there's no entry in global registers, create new
-  if (hashmap_get(reg, time_to_string(pomofile->date)) == NULL) {
-    hashmap_put(reg, time_to_string(pomofile->date), (void*)pomofile->registers);
+  if (hashmap_get(global_registers, time_to_string(pomofile->date)) == NULL) {
+    hashmap_put(global_registers, time_to_string(pomofile->date), (void*)pomofile->registers);
   } else {
     // If it already exists, update it
-    HashMap* old = hashmap_get(reg, time_to_string(pomofile->date)); 
-    HashMap* new = pomofile->registers;
+    HashMap* old_counters = hashmap_get(global_registers, time_to_string(pomofile->date)); 
+    HashMap* updated_counters = pomofile->registers;
 
-    merge_pomodoros(old, new);
+    merge_pomodoros_counters(old_counters, updated_counters);
   }
 
   // Pomodoro duration for that day
-  hashmap_put(pomos, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_duration));
+  hashmap_put(global_pomodoro_durations, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_duration));
 
   fclose(f); 
   return 1;
 }
 
-void process_global_registers(const char* key, void* value, void* glb_pomodoros) {
-  // Key is the date, value is a hashmap of registers
-  HashMap* g_pomodoros = (HashMap*)glb_pomodoros;
-  HashMap* registers = (HashMap*)value;
-  int pomodoro_duration = string_to_int(hashmap_get(g_pomodoros, key));
+void process_global_registers(const char* date, void* registers, void* global_pomodoro_durations) {
+  HashMap* g_pomodoros_durations = (HashMap*)global_pomodoro_durations;
+  HashMap* regs = (HashMap*)registers;
+  int pomodoro_duration = string_to_int(hashmap_get(g_pomodoros_durations, date));
   
-  printf("\n%s -> 🍅 = %d minutes\n\n", key, pomodoro_duration);
-  hashmap_foreach(registers, process_register, (void*)&pomodoro_duration);
+  printf("\n%s -> 🍅 = %d minutes\n\n", date, pomodoro_duration);
+  hashmap_foreach(regs, process_register, &pomodoro_duration);
 }
 
 
