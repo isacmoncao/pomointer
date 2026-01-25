@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     parse_file(&pomofiles_array[i], global_registers, global_pomodoro_durations);
   }
 
-  hashmap_foreach(global_registers, process_global_registers, (void*)global_pomodoro_durations);
+  hashmap_foreach(global_registers, process_global_registers, global_pomodoro_durations);
 
   for (int i = 0; i < num_files; i++) {
     free_pomofile(&pomofiles_array[i]);
