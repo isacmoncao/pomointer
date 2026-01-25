@@ -2,15 +2,15 @@
 #include <stdlib.h>
 #include "pomofile.h"
 
-static PomoFile* pomofiles;
+static PomoFile* pomofiles_array;
 static HashMap* global_registers;
-static HashMap* global_pomodoros;
+static HashMap* global_pomodoro_durations;
 
 static void clear_hashmaps(void);
 
 static void clear_hashmaps(void) {
   hashmap_destroy(global_registers, NULL);
-  hashmap_destroy(global_pomodoros, NULL);
+  hashmap_destroy(global_pomodoro_durations, NULL);
 }
 
 int main(int argc, char** argv) {
@@ -20,38 +20,38 @@ int main(int argc, char** argv) {
   }
 
   int num_files = argc - 1;
-  pomofiles = (PomoFile*)malloc((argc - 1) * sizeof(PomoFile));
+  pomofiles_array = (PomoFile*)malloc((argc - 1) * sizeof(PomoFile));
   global_registers = hashmap_create(16, 0.75);
-  global_pomodoros = hashmap_create(16, 0.75);
+  global_pomodoro_durations = hashmap_create(16, 0.75);
 
-  if (pomofiles == NULL) {
+  if (pomofiles_array == NULL) {
     fprintf(stderr, "Error: cannot allocate memory\n");
     return EXIT_FAILURE;
   }
 
   for (int i = 1, j = 0; i < argc; i++, j++) {
-    if (pomofile_init(&pomofiles[j], argv[i]) != 0) {
+    if (pomofile_init(&pomofiles_array[j], argv[i]) != 0) {
       fprintf(stderr, "Error: cannot initialize PomoFile for '%s'\n", argv[i]);
 
       for (int k = 0; k < j; k++) {
-        free_pomofile(&pomofiles[k]);
+        free_pomofile(&pomofiles_array[k]);
       }
-      free(pomofiles);
+      free(pomofiles_array);
       clear_hashmaps();
       return EXIT_FAILURE;
     }
   }
   
   for (int i = 0; i < num_files; i++) {
-    parse_file(&pomofiles[i], global_registers, global_pomodoros);
+    parse_file(&pomofiles_array[i], global_registers, global_pomodoro_durations);
   }
 
-  hashmap_foreach(global_registers, process_global_registers, (void*)global_pomodoros);
+  hashmap_foreach(global_registers, process_global_registers, (void*)global_pomodoro_durations);
 
   for (int i = 0; i < num_files; i++) {
-    free_pomofile(&pomofiles[i]);
+    free_pomofile(&pomofiles_array[i]);
   }
-  free(pomofiles);
+  free(pomofiles_array);
   clear_hashmaps();
   return EXIT_SUCCESS;
 }
