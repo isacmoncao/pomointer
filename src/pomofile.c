@@ -3,6 +3,7 @@
 #include "util.h"
 #include "pomofile.h"
 #include "preprocessor.h"
+#include "process_data.h"
 
 /* -------------------------- AUXILIARY FUNCTIONS DECLARATIONS -------------------------------- */
 
@@ -250,7 +251,7 @@ void free_pomofile(PomoFile* pomofile) {
   pomofile->registers = NULL;
 }
 
-int parse_file(PomoFile* pomofile, HashMap* global_registers, HashMap* global_pomodoro_durations) {
+int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* process_data) {
   FILE* f = preprocess_file(pomofile->path, 0);
   if (f == NULL) {
     fprintf(stderr, "Erro: cannot read file '%s'\n", pomofile->path);
@@ -303,16 +304,19 @@ int parse_file(PomoFile* pomofile, HashMap* global_registers, HashMap* global_po
   }
 
   // Pomodoro duration for that day
-  hashmap_put(global_pomodoro_durations, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_duration));
+  hashmap_put(process_data->pomodoro_durations, time_to_string(pomofile->date), int_to_string(pomofile->pomodoro_duration));
 
   fclose(f); 
   return 1;
 }
 
-void process_global_registers(const char* date, void* registers, void* global_pomodoro_durations) {
-  HashMap* g_pomodoros_durations = (HashMap*)global_pomodoro_durations;
+void process_global_registers(const char* date, void* registers, void* process_data) {
+  ProcessData* proc_data = (ProcessData*)process_data;
+  //RegisterFilter* register_filter = &proc_data->register_filter;
+
+  HashMap* pomodoros_durations = proc_data->pomodoro_durations;
   HashMap* regs = (HashMap*)registers;
-  int pomodoro_duration = string_to_int(hashmap_get(g_pomodoros_durations, date));
+  int pomodoro_duration = string_to_int(hashmap_get(pomodoros_durations, date));
   
   printf("\n%s -> 🍅 = %d minutes\n\n", date, pomodoro_duration);
   hashmap_foreach(regs, process_register, &pomodoro_duration);

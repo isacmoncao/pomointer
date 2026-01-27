@@ -1,9 +1,7 @@
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "hashmap.h"
 #include "util.h"
 #include "pomofile.h"
 
@@ -11,7 +9,6 @@
 
 #define INITIAL_HASHMAP_SIZE 16
 #define LOAD_FACTOR 0.75
-#define MAX_DATE_LENGTH
 
 /*---------- OPTION HANDLING RELATED -------------*/
 
@@ -28,7 +25,7 @@ static Options options = {false, false, -1, -1};
 
 static PomoFile* pomofiles_array = NULL;
 static HashMap* global_registers = NULL;
-static HashMap* global_pomodoro_durations = NULL;
+static ProcessData process_data;
 
 /*------------------------------------------------*/
 
@@ -48,15 +45,20 @@ static void clear_resources(void) {
     global_registers = NULL;
   }
 
-  if (global_pomodoro_durations != NULL) {
-    hashmap_destroy(global_pomodoro_durations, NULL);
-    global_pomodoro_durations = NULL;
+  if (process_data.pomodoro_durations != NULL) {
+    hashmap_destroy(process_data.pomodoro_durations, NULL);
+    process_data.pomodoro_durations = NULL;
   }
 
   if (pomofiles_array != NULL) {
     free(pomofiles_array);
     pomofiles_array = NULL;
   }
+
+  process_data.register_filter.aftdate_flag = false;
+  process_data.register_filter.befdate_flag = false;
+  process_data.register_filter.after_date = -1;
+  process_data.register_filter.before_date = -1;
 }
 
 
@@ -160,9 +162,15 @@ static int initialize_pomofiles(int argc, int options_count) {
   }
 
   global_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
-  global_pomodoro_durations = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
+  process_data.pomodoro_durations = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
 
-  if (global_registers == NULL || global_pomodoro_durations == NULL) {
+  // Copy options to data processing structure
+  process_data.register_filter.aftdate_flag = options.aftdate_flag;
+  process_data.register_filter.befdate_flag = options.befdate_flag;
+  process_data.register_filter.after_date = options.after_date;
+  process_data.register_filter.before_date = options.before_date;
+
+  if (global_registers == NULL || process_data.pomodoro_durations == NULL) {
     fprintf(stderr, "Error: Failed to create hashmap structures\n");
     clear_resources();
     exit(EXIT_FAILURE);
@@ -194,11 +202,11 @@ int main(int argc, char** argv) {
 
   // Parse all files
   for (int i = 0; i < num_files; i++) {
-    parse_file(&pomofiles_array[i], global_registers, global_pomodoro_durations);
+    parse_file(&pomofiles_array[i], global_registers, &process_data);
   }
 
   // Process global data
-  hashmap_foreach(global_registers, process_global_registers, global_pomodoro_durations);
+  hashmap_foreach(global_registers, process_global_registers, &process_data);
 
   // Cleanup
   for (int i = 0; i < num_files; i++) {

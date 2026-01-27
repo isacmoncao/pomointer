@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include "hashmap.h"
+#include "process_data.h"
 
 typedef enum {
   LINE_ASSIGNMENT,
@@ -20,9 +21,9 @@ typedef struct {
 } PomoFile;
 
 int pomofile_init(PomoFile* pomofile, const char* path);
-int parse_file(PomoFile* pomofile, HashMap* global_registers, HashMap* global_pomodoro_durations);
+int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* process_data);
 void free_pomofile(PomoFile* pomofile);
 void print_pomofile(PomoFile* pomofile);
-void process_global_registers(const char* date, void* registers, void* global_pomodoro_durations);
+void process_global_registers(const char* date, void* registers, void* process_data);
 
 #endif
