@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct {
   HashMap* pomodoro_durations;
+  HashMap* global_registers;
   RegisterFilter register_filter;
 } ProcessData;
 

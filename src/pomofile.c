@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "hashmap.h"
 #include "util.h"
 #include "pomofile.h"
 #include "preprocessor.h"
@@ -8,6 +9,7 @@
 /* -------------------------- AUXILIARY FUNCTIONS DECLARATIONS -------------------------------- */
 
 static void print(const char* key, void* value, void* type);
+static void print_registers_on_date(const char* key, void* val, void* user_data);
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters);
 static int search_abbvr(HashMap* assignments, HashMap* registers);
 static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration);
@@ -22,6 +24,10 @@ static bool is_date_defined(HashMap* assignments);
 static int get_pomodoro_duration(HashMap* assignments);
 static time_t get_date(HashMap* assignments);
 
+static void filter_after_before_date(time_t after_date, time_t before_date, HashMap* global_registers, HashMap* filtered_registers) ;
+static void filter_after_date(time_t after_date, HashMap* global_registers, HashMap* filtered_registers);
+static void filter_before_date(time_t before_date, HashMap* global_registers, HashMap* filtered_registers);
+
 /* ---------------------------------- AUXILIARY FUNCTIONS ------------------------------------ */
 
 static void print(const char* key, void* value, void* type) {
@@ -32,6 +38,16 @@ static void print(const char* key, void* value, void* type) {
     printf("\"%s\":\"%d\",\n", key, pomodoros_ammount);
   }
 }
+
+
+static void print_registers_on_date(const char* key, void* val, void* user_data) {
+  const char* date = key;
+  HashMap* regs = (HashMap*)val;
+  (void)user_data;
+  printf("Date: %s\n", date);
+  hashmap_foreach(regs, print, "REGISTER");
+}
+
 
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters) {
   if (!old_counters || !updated_counters ) return 0;
@@ -190,6 +206,58 @@ static time_t get_date(HashMap* assignments) {
   return string_to_time(date);
 }
 
+
+
+static void filter_after_before_date(time_t after_date, time_t before_date, HashMap* global_registers, HashMap* filtered_registers) {
+  HashMapIterator* iter = hashmap_iterator_create(global_registers);
+
+  do {
+    const char* key = hashmap_iterator_key(iter);
+    void* val = hashmap_iterator_value(iter);
+    time_t current_date = string_to_time(key);
+
+    if (current_date > after_date && current_date < before_date) {
+      hashmap_put(filtered_registers, key, val);
+    }
+  } while (hashmap_iterator_next(iter));
+
+  hashmap_iterator_destroy(iter);
+}
+
+
+static void filter_after_date(time_t after_date, HashMap* global_registers, HashMap* filtered_registers) {
+  HashMapIterator* iter = hashmap_iterator_create(global_registers);
+
+  do {
+    const char* key = hashmap_iterator_key(iter);
+    void* val = hashmap_iterator_value(iter);
+    time_t current_date = string_to_time(key);
+
+    if (current_date > after_date) {
+      hashmap_put(filtered_registers, key, val);
+    }
+  } while (hashmap_iterator_next(iter));
+
+  hashmap_iterator_destroy(iter);
+}
+
+
+static void filter_before_date(time_t before_date, HashMap* global_registers, HashMap* filtered_registers) {
+  HashMapIterator* iter = hashmap_iterator_create(global_registers);
+
+  do {
+    const char* key = hashmap_iterator_key(iter);
+    void* val = hashmap_iterator_value(iter);
+    time_t current_date = string_to_time(key);
+
+    if (current_date < before_date) {
+      hashmap_put(filtered_registers, key, val);
+    }
+  } while (hashmap_iterator_next(iter));
+
+  hashmap_iterator_destroy(iter);
+}
+
 /* ---------------------------------- AUXILIARY FUNCTIONS END ---------------------------------- */
 
 int pomofile_init(PomoFile* file, const char* path) {
@@ -310,16 +378,30 @@ int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* proce
   return 1;
 }
 
-void process_global_registers(const char* date, void* registers, void* process_data) {
-  ProcessData* proc_data = (ProcessData*)process_data;
-  //RegisterFilter* register_filter = &proc_data->register_filter;
 
-  HashMap* pomodoros_durations = proc_data->pomodoro_durations;
-  HashMap* regs = (HashMap*)registers;
-  int pomodoro_duration = string_to_int(hashmap_get(pomodoros_durations, date));
-  
-  printf("\n%s -> 🍅 = %d minutes\n\n", date, pomodoro_duration);
-  hashmap_foreach(regs, process_register, &pomodoro_duration);
+void process_final_registers(const char* date, void* registers, void* pomodoro_dur) {
+  HashMap* pomodoro_durations = pomodoro_dur;
+  int pomodoro_duration = string_to_int(hashmap_get(pomodoro_durations, date));
+  printf("Date: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
+  hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
 }
 
+
+
+void filter_registers(ProcessData* process_data, HashMap* filtered_registers) {
+  HashMap* global_registers = process_data->global_registers;
+  RegisterFilter register_filter = process_data->register_filter;
+
+  if (register_filter.aftdate_flag && register_filter.befdate_flag) {
+    filter_after_before_date(register_filter.after_date,
+                             register_filter.before_date,
+                             global_registers,
+                             filtered_registers);
+  }
+  else if (register_filter.aftdate_flag) {
+    filter_after_date(register_filter.after_date, global_registers, filtered_registers); }
+  else if (register_filter.befdate_flag) {
+    filter_before_date(register_filter.before_date, global_registers, filtered_registers);
+  }
+}
 

@@ -24,6 +24,7 @@ int pomofile_init(PomoFile* pomofile, const char* path);
 int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* process_data);
 void free_pomofile(PomoFile* pomofile);
 void print_pomofile(PomoFile* pomofile);
-void process_global_registers(const char* date, void* registers, void* process_data);
+void process_final_registers(const char* date, void* registers, void* process_data);
+void filter_registers(ProcessData* process_data, HashMap* filtered_registers);
 
 #endif

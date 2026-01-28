@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "hashmap.h"
 #include "util.h"
 #include "pomofile.h"
 
@@ -24,7 +25,7 @@ static Options options = {false, false, -1, -1};
 /*---------- GLOBAL VARIABLES --------------*/
 
 static PomoFile* pomofiles_array = NULL;
-static HashMap* global_registers = NULL;
+static HashMap* final_registers = NULL;
 static ProcessData process_data;
 
 /*------------------------------------------------*/
@@ -40,9 +41,14 @@ static void handle_initialization_error(int processed_count, const char* filenam
 
 
 static void clear_resources(void) {
-  if (global_registers != NULL) {
-    hashmap_destroy(global_registers, NULL);
-    global_registers = NULL;
+  if (final_registers != NULL) {
+    hashmap_destroy(final_registers, NULL);
+    final_registers = NULL;
+  }
+
+  if (process_data.global_registers != NULL) {
+    hashmap_destroy(process_data.global_registers, NULL);
+    process_data.global_registers = NULL;
   }
 
   if (process_data.pomodoro_durations != NULL) {
@@ -161,7 +167,8 @@ static int initialize_pomofiles(int argc, int options_count) {
     exit(EXIT_FAILURE);
   }
 
-  global_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
+  final_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
+  process_data.global_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
   process_data.pomodoro_durations = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
 
   // Copy options to data processing structure
@@ -170,7 +177,7 @@ static int initialize_pomofiles(int argc, int options_count) {
   process_data.register_filter.after_date = options.after_date;
   process_data.register_filter.before_date = options.before_date;
 
-  if (global_registers == NULL || process_data.pomodoro_durations == NULL) {
+  if (process_data.global_registers == NULL || process_data.pomodoro_durations == NULL) {
     fprintf(stderr, "Error: Failed to create hashmap structures\n");
     clear_resources();
     exit(EXIT_FAILURE);
@@ -202,11 +209,12 @@ int main(int argc, char** argv) {
 
   // Parse all files
   for (int i = 0; i < num_files; i++) {
-    parse_file(&pomofiles_array[i], global_registers, &process_data);
+    parse_file(&pomofiles_array[i], process_data.global_registers, &process_data);
   }
 
   // Process global data
-  hashmap_foreach(global_registers, process_global_registers, &process_data);
+  filter_registers(&process_data, final_registers);
+  hashmap_foreach(final_registers, process_final_registers, process_data.pomodoro_durations);
 
   // Cleanup
   for (int i = 0; i < num_files; i++) {
