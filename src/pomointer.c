@@ -214,7 +214,11 @@ int main(int argc, char** argv) {
 
   // Process global data
   filter_registers(&process_data, final_registers);
-  hashmap_foreach(final_registers, process_final_registers, process_data.pomodoro_durations);
+  if (hashmap_size(final_registers) != 0) {
+    hashmap_foreach(final_registers, process_final_registers, process_data.pomodoro_durations);
+  } else {
+    hashmap_foreach(process_data.global_registers, process_final_registers, process_data.pomodoro_durations);
+  }
 
   // Cleanup
   for (int i = 0; i < num_files; i++) {
