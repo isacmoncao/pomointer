@@ -16,11 +16,13 @@
 typedef struct {
   bool aftdate_flag;
   bool befdate_flag;
+  bool subj_flag;
   time_t after_date;
   time_t before_date;
+  char** subjects;
 } Options;
 
-static Options options = {false, false, -1, -1};
+static Options options = {false, false, false, -1, -1, NULL};
 
 /*---------- GLOBAL VARIABLES --------------*/
 
@@ -56,6 +58,11 @@ static void clear_resources(void) {
     process_data.pomodoro_durations = NULL;
   }
 
+  if (process_data.register_filter.subjects != NULL) {
+    free_string_array(process_data.register_filter.subjects);
+    process_data.register_filter.subjects = NULL;
+  }
+
   if (pomofiles_array != NULL) {
     free(pomofiles_array);
     pomofiles_array = NULL;
@@ -63,6 +70,7 @@ static void clear_resources(void) {
 
   process_data.register_filter.aftdate_flag = false;
   process_data.register_filter.befdate_flag = false;
+  process_data.register_filter.subj_flag = false;
   process_data.register_filter.after_date = -1;
   process_data.register_filter.before_date = -1;
 }
@@ -72,9 +80,10 @@ static void usage(void) {
   fprintf(stderr, "Pomofile Interpreter\n"
                   "Usage: pomointer [OPTIONS] <file1> <file2> ... <fileN>\n\n"
                   "Options:\n"
-                  "  -h                 Show this help message\n"
-                  "  -a \"%%d/%%m/%%Y\"      Filter entries after this date\n"
-                  "  -b \"%%d/%%m/%%Y\"      Filter entries before this date\n\n"
+                  "  -h                            Show this help message\n"
+                  "  -a \"%%d/%%m/%%Y\"                 Filter entries after this date\n"
+                  "  -b \"%%d/%%m/%%Y\"                 Filter entries before this date\n"
+                  "  -s subj1,subj2,...,subjN      Filter entries by subject\n\n"
                   "Example: \n"
                   "  pomointer -a \"16/01/2026\" -b \"31/01/2026\" pomofile1.txt pomofile2.txt\n"
                   );
@@ -131,6 +140,21 @@ static int parse_options(int argc, char** argv) {
       i++; // Skip the date argument
       options_processed += 2; // Flag and date argument
     }
+    else if (strcmp(opt, "-s") == 0) {
+      if (i + 1 >= argc) {
+        fprintf(stderr, "Error: option %s requires a list of subjects\n", opt);
+        usage();
+      }
+
+      int count;
+      char** subjects = split_string(argv[i+1], ',', &count);
+
+      options.subj_flag = true;
+      options.subjects = subjects;
+
+      i++; // Skip the date argument
+      options_processed += 2; // Flag and date argument
+    }
     else {
       fprintf(stderr, "Error: Unknown option '%s'\n", opt);
       usage();
@@ -176,6 +200,8 @@ static int initialize_pomofiles(int argc, int options_count) {
   process_data.register_filter.befdate_flag = options.befdate_flag;
   process_data.register_filter.after_date = options.after_date;
   process_data.register_filter.before_date = options.before_date;
+  process_data.register_filter.subj_flag = options.subj_flag;
+  process_data.register_filter.subjects = options.subjects;
 
   if (process_data.global_registers == NULL || process_data.pomodoro_durations == NULL) {
     fprintf(stderr, "Error: Failed to create hashmap structures\n");
