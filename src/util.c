@@ -236,6 +236,20 @@ bool is_comment(const char *str) {
   return (*str == '#');
 }
 
+bool string_arr_contains(char** array, const char* string) {
+  if (!array || !string) return false;
+
+  bool contains = false;
+  for (int i = 0; array[i] != NULL; i++) {
+    if (strcmp(array[i], string) == 0) {
+      contains = true;
+      break;
+    }
+  }
+
+  return contains;
+}
+
 static bool is_leap_year(int y) {
   bool div4 = y % 4 == 0;
   bool div400 = y % 400 == 0;

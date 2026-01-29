@@ -20,6 +20,7 @@ char* time_to_string(time_t time);
 // Booleans
 bool is_empty_str(const char* str);
 bool is_comment(const char* str);
+bool string_arr_contains(char** array, const char* string);
 
 // Files
 time_t get_file_mod_date(const char* path);
