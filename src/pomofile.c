@@ -437,8 +437,10 @@ int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* proce
 void process_final_registers(const char* date, void* registers, void* pomodoro_dur) {
   HashMap* pomodoro_durations = pomodoro_dur;
   int pomodoro_duration = string_to_int(hashmap_get(pomodoro_durations, date));
-  printf("Date: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
-  hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
+  if (hashmap_size(registers) > 0) {
+    printf("Date: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
+    hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
+  }
 }
 
 
