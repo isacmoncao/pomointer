@@ -1,4 +1,6 @@
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "hashmap.h"
 #include "util.h"
@@ -9,7 +11,7 @@
 /* -------------------------- AUXILIARY FUNCTIONS DECLARATIONS -------------------------------- */
 
 static void print(const char* key, void* value, void* type);
-static void print_registers_on_date(const char* key, void* val, void* user_data);
+//static void print_registers_on_date(const char* key, void* val, void* user_data);
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters);
 static int search_abbvr(HashMap* assignments, HashMap* registers);
 static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration);
@@ -40,13 +42,14 @@ static void print(const char* key, void* value, void* type) {
 }
 
 
-static void print_registers_on_date(const char* key, void* val, void* user_data) {
+/*static void print_registers_on_date(const char* key, void* val, void* user_data) {
   const char* date = key;
   HashMap* regs = (HashMap*)val;
   (void)user_data;
   printf("Date: %s\n", date);
   hashmap_foreach(regs, print, "REGISTER");
 }
+*/
 
 
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters) {
@@ -258,6 +261,58 @@ static void filter_before_date(time_t before_date, HashMap* global_registers, Ha
   hashmap_iterator_destroy(iter);
 }
 
+
+static int remove_subjects_not_in(HashMap* registers, char** subjects) {
+  if (!registers || !subjects) return 0;
+  int removed_elements = 0;
+
+  for (int i = 0;  i < registers->capacity; i++) {
+    Entry* entry = registers->buckets[i];
+    Entry* prev = NULL;
+
+    while (entry) {
+      const char* subject = entry->key;
+      if (!string_arr_contains(subjects, subject)) {
+        Entry* to_remove = entry;
+        Entry* next = entry->next;
+
+        if (prev) {
+          prev->next = next;
+        } else {
+          registers->buckets[i] = next;
+        }
+
+        free(to_remove->key);
+        free(to_remove);
+
+        registers->size--;
+        removed_elements++;
+
+        entry = next;
+      } else {
+        prev = entry;
+        entry = entry->next;
+      }
+    }
+  }
+
+  return removed_elements;
+}
+
+
+static void filter_subjects(HashMap* global_registers, HashMap* filtered_registers, char** subjects) {
+  HashMapIterator* iter = hashmap_iterator_create(global_registers);
+  do {
+    const char* date = hashmap_iterator_key(iter);
+    HashMap* registers = hashmap_iterator_value(iter);
+
+    remove_subjects_not_in(registers, subjects);
+    hashmap_put(filtered_registers, date, registers);
+
+  } while(hashmap_iterator_next(iter));
+}
+
+
 /* ---------------------------------- AUXILIARY FUNCTIONS END ---------------------------------- */
 
 int pomofile_init(PomoFile* file, const char* path) {
@@ -387,7 +442,6 @@ void process_final_registers(const char* date, void* registers, void* pomodoro_d
 }
 
 
-
 void filter_registers(ProcessData* process_data, HashMap* filtered_registers) {
   HashMap* global_registers = process_data->global_registers;
   RegisterFilter register_filter = process_data->register_filter;
@@ -403,5 +457,14 @@ void filter_registers(ProcessData* process_data, HashMap* filtered_registers) {
   else if (register_filter.befdate_flag) {
     filter_before_date(register_filter.before_date, global_registers, filtered_registers);
   }
+
+  if (register_filter.subj_flag) {
+    if (hashmap_size(filtered_registers) != 0) {
+      filter_subjects(filtered_registers, filtered_registers, register_filter.subjects); 
+    } else {
+      filter_subjects(global_registers, filtered_registers, register_filter.subjects); 
+    }
+  }
+  
 }
 
