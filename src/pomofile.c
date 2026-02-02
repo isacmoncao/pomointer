@@ -14,6 +14,7 @@ static void print(const char* key, void* value, void* type);
 //static void print_registers_on_date(const char* key, void* val, void* user_data);
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters);
 static int search_abbvr(HashMap* assignments, HashMap* registers);
+static void print_time(int minutes);
 static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration);
 
 static int read_assignment(char* line, HashMap* assignments);
@@ -93,14 +94,29 @@ static int search_abbvr(HashMap* assignments, HashMap* registers) {
   return modified;
 }
 
-static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration) {
-  printf("%s:\n", date);
+static void print_time(int minutes) {
+  if (minutes / 60 > 0) {
+    printf("%dh", minutes / 60);
+
+    if (minutes % 60 > 0) {
+      printf("%.2dmin", minutes % 60);
+    }
+
+    printf("\n");
+  } else {
+    printf("%.2dmin\n", minutes);
+  }
+}
+
+static void process_register(const char* subj, void* pomodoros_ammount, void* pomodoro_duration) {
+  printf("%s:\n", subj);
   int p_ammount = string_to_int(pomodoros_ammount);
   int duration = *(int*)pomodoro_duration;
   for (int i = 0; i < p_ammount; i++) {
     printf("🍅");
   }
-  printf(" -> %d minutes\n", p_ammount * duration);
+  printf(" -> ");
+  print_time(duration * p_ammount);
 }
 
 static LineType classify_line(char *line) {
@@ -438,7 +454,7 @@ void process_final_registers(const char* date, void* registers, void* pomodoro_d
   HashMap* pomodoro_durations = pomodoro_dur;
   int pomodoro_duration = string_to_int(hashmap_get(pomodoro_durations, date));
   if (hashmap_size(registers) > 0) {
-    printf("Date: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
+    printf("\nDate: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
     hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
   }
 }
