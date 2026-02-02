@@ -9,9 +9,11 @@ typedef struct {
   bool aftdate_flag;
   bool befdate_flag;
   bool subj_flag;
+  bool export_flag;
   time_t after_date;
   time_t before_date;
   char** subjects;
+  char* export_type;
 } RegisterFilter;
 
 typedef struct {

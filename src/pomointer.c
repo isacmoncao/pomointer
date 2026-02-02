@@ -5,6 +5,7 @@
 #include "hashmap.h"
 #include "util.h"
 #include "pomofile.h"
+#include "export.h"
 
 /*---------- CONSTANTS AND MACROS --------------*/
 
@@ -17,17 +18,19 @@ typedef struct {
   bool aftdate_flag;
   bool befdate_flag;
   bool subj_flag;
+  bool export_flag;
   time_t after_date;
   time_t before_date;
   char** subjects;
+  char* export_type;
 } Options;
 
-static Options options = {false, false, false, -1, -1, NULL};
+static Options options = {false, false, false, false, -1, -1, NULL, NULL};
 
 /*---------- GLOBAL VARIABLES --------------*/
 
 static PomoFile* pomofiles_array = NULL;
-static HashMap* final_registers = NULL;
+static HashMap* filtered_registers = NULL;
 static ProcessData process_data;
 
 /*------------------------------------------------*/
@@ -43,9 +46,9 @@ static void handle_initialization_error(int processed_count, const char* filenam
 
 
 static void clear_resources(void) {
-  if (final_registers != NULL) {
-    hashmap_destroy(final_registers, NULL);
-    final_registers = NULL;
+  if (filtered_registers != NULL) {
+    hashmap_destroy(filtered_registers, NULL);
+    filtered_registers = NULL;
   }
 
   if (process_data.global_registers != NULL) {
@@ -71,6 +74,8 @@ static void clear_resources(void) {
   process_data.register_filter.aftdate_flag = false;
   process_data.register_filter.befdate_flag = false;
   process_data.register_filter.subj_flag = false;
+  process_data.register_filter.export_flag = false;
+  process_data.register_filter.export_type = NULL;
   process_data.register_filter.after_date = -1;
   process_data.register_filter.before_date = -1;
 }
@@ -83,9 +88,11 @@ static void usage(void) {
                   "  -h                            Show this help message\n"
                   "  -a \"%%d/%%m/%%Y\"                 Filter entries after this date\n"
                   "  -b \"%%d/%%m/%%Y\"                 Filter entries before this date\n"
-                  "  -s subj1,subj2,...,subjN      Filter entries by subject\n\n"
-                  "Example: \n"
+                  "  -s subj1,subj2,...,subjN      Filter entries by subject\n"
+                  "  -e html                       Export to html file\n\n"
+                  "Examples: \n"
                   "  pomointer -a \"16/01/2026\" -b \"31/01/2026\" pomofile1.txt pomofile2.txt\n"
+                  "  pomointer -s \"Math,Physics\" -a \"05/03/2026\" -e \"html\" pomofile1.txt > index.html\n"
                   );
   exit(EXIT_FAILURE);
 }
@@ -104,6 +111,7 @@ static void validade_date_range(void) {
 static int parse_options(int argc, char** argv) {
   int options_processed = 0;
 
+  // Skip argv[0]
   for (int i = 1; i < argc; i++) {
     char* opt = argv[i];
 
@@ -155,6 +163,18 @@ static int parse_options(int argc, char** argv) {
       i++; // Skip the date argument
       options_processed += 2; // Flag and date argument
     }
+    else if (strcmp(opt, "-e") == 0) {
+      if (i + 1 >= argc || strcmp(argv[i+1], "html") != 0) {
+        fprintf(stderr, "Error: option %s requires a valid file type to export\n", opt);
+        usage();
+      }
+
+      options.export_flag = true;
+      options.export_type = argv[i+1];
+      
+      i++; // Skip the export type argument
+      options_processed += 2; // Flag and export type
+    }
     else {
       fprintf(stderr, "Error: Unknown option '%s'\n", opt);
       usage();
@@ -191,7 +211,7 @@ static int initialize_pomofiles(int argc, int options_count) {
     exit(EXIT_FAILURE);
   }
 
-  final_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
+  filtered_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
   process_data.global_registers = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
   process_data.pomodoro_durations = hashmap_create(INITIAL_HASHMAP_SIZE, LOAD_FACTOR);
 
@@ -202,6 +222,8 @@ static int initialize_pomofiles(int argc, int options_count) {
   process_data.register_filter.before_date = options.before_date;
   process_data.register_filter.subj_flag = options.subj_flag;
   process_data.register_filter.subjects = options.subjects;
+  process_data.register_filter.export_flag = options.export_flag;
+  process_data.register_filter.export_type = options.export_type;
 
   if (process_data.global_registers == NULL || process_data.pomodoro_durations == NULL) {
     fprintf(stderr, "Error: Failed to create hashmap structures\n");
@@ -239,11 +261,23 @@ int main(int argc, char** argv) {
   }
 
   // Process global data
-  filter_registers(&process_data, final_registers);
-  if (hashmap_size(final_registers) != 0) {
-    hashmap_foreach(final_registers, process_final_registers, process_data.pomodoro_durations);
+  filter_registers(&process_data, filtered_registers);
+  HashMap** final_registers = NULL;
+
+  if (hashmap_size(filtered_registers) == 0) {
+    final_registers = &process_data.global_registers;
   } else {
-    hashmap_foreach(process_data.global_registers, process_final_registers, process_data.pomodoro_durations);
+    final_registers = &filtered_registers;
+  }
+
+  // Export to HTML
+  if (options.export_flag && strcmp(options.export_type, "html") == 0) {
+    print_html_top_part();
+    hashmap_foreach(*final_registers, process_final_registers, &process_data);
+    print_html_down_part();
+  // Normal output
+  } else {
+    hashmap_foreach(*final_registers, process_final_registers, &process_data);
   }
 
   // Cleanup

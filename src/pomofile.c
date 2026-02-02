@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "export.h"
 #include "hashmap.h"
 #include "util.h"
 #include "pomofile.h"
@@ -14,8 +15,9 @@ static void print(const char* key, void* value, void* type);
 //static void print_registers_on_date(const char* key, void* val, void* user_data);
 static int merge_pomodoros_counters(HashMap* old_counters, HashMap* updated_counters);
 static int search_abbvr(HashMap* assignments, HashMap* registers);
-static void print_time(int minutes);
-static void process_register(const char* date, void* pomodoros_ammount, void* pomodoro_duration);
+static char* minutes_to_time(int minutes);
+static void process_register(const char* subj, void* pomodoros_ammount, void* pomodoro_duration);
+static void process_register_to_html(const char* subj, void* pomodoros_ammount, void* pomodoro_duration);
 
 static int read_assignment(char* line, HashMap* assignments);
 static int read_register(char* line, HashMap* registers);
@@ -94,18 +96,21 @@ static int search_abbvr(HashMap* assignments, HashMap* registers) {
   return modified;
 }
 
-static void print_time(int minutes) {
+static char* minutes_to_time(int minutes) {
+  char* buffer = malloc(80 * sizeof(char));
+
   if (minutes / 60 > 0) {
-    printf("%dh", minutes / 60);
+    sprintf(buffer, "%dh", minutes /60);
 
     if (minutes % 60 > 0) {
-      printf("%.2dmin", minutes % 60);
+      sprintf(buffer,"%.2dmin", minutes % 60);
     }
 
-    printf("\n");
   } else {
-    printf("%.2dmin\n", minutes);
+    sprintf(buffer,"%.2dmin", minutes);
   }
+
+  return buffer;
 }
 
 static void process_register(const char* subj, void* pomodoros_ammount, void* pomodoro_duration) {
@@ -115,8 +120,24 @@ static void process_register(const char* subj, void* pomodoros_ammount, void* po
   for (int i = 0; i < p_ammount; i++) {
     printf("🍅");
   }
-  printf(" -> ");
-  print_time(duration * p_ammount);
+  printf(" -> %s\n", minutes_to_time(duration * p_ammount));
+}
+
+static void process_register_to_html(const char* subj, void* pomodoros_ammount, void* pomodoro_duration) {
+  int p_ammount = string_to_int(pomodoros_ammount);
+  int duration = *(int*)pomodoro_duration;
+
+  printf("    <tr>\n"
+         "     <td class=\"subject\">%s</td>\n"
+         "     <td class=\"tomato\">",
+         subj);
+              for (int i = 0; i < p_ammount; i++) {
+                printf("🍅");
+              }
+         printf("</td>\n"
+         "     <td class=\"time\">%s</td>\n"
+         "    </tr>\n", minutes_to_time(p_ammount * duration)
+         );
 }
 
 static LineType classify_line(char *line) {
@@ -449,16 +470,30 @@ int parse_file(PomoFile* pomofile, HashMap* global_registers, ProcessData* proce
   return 1;
 }
 
+void process_final_registers(const char* date, void* registers, void* process_data) {
+  ProcessData* proc_data = (ProcessData*)process_data;
+  RegisterFilter register_filter = proc_data->register_filter;
 
-void process_final_registers(const char* date, void* registers, void* pomodoro_dur) {
-  HashMap* pomodoro_durations = pomodoro_dur;
+  HashMap* pomodoro_durations = proc_data->pomodoro_durations;
   int pomodoro_duration = string_to_int(hashmap_get(pomodoro_durations, date));
+  
+  // A file not empty
   if (hashmap_size(registers) > 0) {
-    printf("\nDate: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
-    hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
+    // Export
+    if (register_filter.export_flag) {
+      //to HTML
+      if (strcmp(register_filter.export_type, "html") == 0) {
+        print_table_top_part(date, minutes_to_time(pomodoro_duration));
+        hashmap_foreach((HashMap*)registers, process_register_to_html, &pomodoro_duration);
+        print_table_down_part();
+      }
+    // Normal output
+    } else {
+      printf("\nDate: %s - Pomodoro length: %d min\n", date, pomodoro_duration);
+      hashmap_foreach((HashMap*)registers, process_register, &pomodoro_duration);
+    }
   }
 }
-
 
 void filter_registers(ProcessData* process_data, HashMap* filtered_registers) {
   HashMap* global_registers = process_data->global_registers;
