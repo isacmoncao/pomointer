@@ -1,0 +1,41 @@
+pomointer
+=========
+pomointer is the only pomofile interpreter in the world.
+
+A pomofile is a text file containing information about
+how many pomodoros you spent doing a task. 
+See examples/ directory for examples, also check
+pomofile(5) man page.
+
+If you want to see a example in action run
+
+    make run_all
+
+
+Requirements
+------------
+A Linux distro.
+
+
+Installation
+------------
+Edit Makefile to match your local setup. pomointer is 
+by default installed at /usr/local namespace.
+
+Then, enter the following command to build and install
+(if necessary as root).
+
+      make clean install
+
+
+Running pomointer
+-----------------
+See pomointer(1) man page for usage information or run
+
+      pomointer -h
+
+
+License
+-------
+
+See LICENSE file.
