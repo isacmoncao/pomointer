@@ -100,10 +100,10 @@ static char* minutes_to_time(int minutes) {
   char* buffer = malloc(80 * sizeof(char));
 
   if (minutes / 60 > 0) {
-    sprintf(buffer, "%dh", minutes /60);
-
     if (minutes % 60 > 0) {
-      sprintf(buffer,"%.2dmin", minutes % 60);
+      sprintf(buffer,"%dh%.2dmin", minutes / 60, minutes % 60);
+    } else {
+      sprintf(buffer, "%dh", minutes /60);
     }
 
   } else {
