@@ -8,7 +8,8 @@ See examples/ directory for examples, also check
 pomofile(5) man page.
 
 If you want to see a example in action run
-
+    
+    make
     make run_all
 
 
