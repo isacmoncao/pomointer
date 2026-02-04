@@ -4,7 +4,7 @@
 // Key-value structure
 typedef struct Entry {
   char* key;
-  char* value;
+  void* value;
   struct Entry* next;
 } Entry;
 
