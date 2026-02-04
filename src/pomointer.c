@@ -83,7 +83,7 @@ static void clear_resources(void) {
 
 static void usage(void) {
   fprintf(stderr, "Pomofile Interpreter\n"
-                  "Usage: pomointer [OPTIONS] <file1> <file2> ... <fileN>\n\n"
+                  "Usage: pomointer [OPTIONS] <pomofile1> <pomofile2> ... <pomofileN>\n\n"
                   "Options:\n"
                   "  -h                            Show this help message\n"
                   "  -a \"%%d/%%m/%%Y\"                 Filter entries after this date\n"
@@ -91,8 +91,8 @@ static void usage(void) {
                   "  -s subj1,subj2,...,subjN      Filter entries by subject\n"
                   "  -e html                       Export to html file\n\n"
                   "Examples: \n"
-                  "  pomointer -a \"16/01/2026\" -b \"31/01/2026\" pomofile1.txt pomofile2.txt\n"
-                  "  pomointer -s \"Math,Physics\" -a \"05/03/2026\" -e \"html\" pomofile1.txt > index.html\n"
+                  "  pomointer -a \"16/01/2026\" -b \"31/01/2026\" pomofile1.pf pomofile2.pf\n"
+                  "  pomointer -s \"Math,Physics\" -a \"05/03/2026\" -e \"html\" pomofile1.pf > index.html\n"
                   );
   exit(EXIT_FAILURE);
 }

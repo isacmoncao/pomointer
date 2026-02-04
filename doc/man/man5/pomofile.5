@@ -1,0 +1,137 @@
+.\" pomofile(5) - Pomodoro file format
+.\"
+.TH POMOFILE 5 "2026-02-04" "1.0" "Pomodoro File Format"
+.SH NAME
+pomofile \- File format for pomodoro session records
+.SH DESCRIPTION
+Files with
+.B .pf
+extension contain pomodoro session records organized by date and subject.
+These files are processed by
+.BR pomointer (1)
+to generate time reports.
+.SH SYNTAX
+The file has optional sections in the order described below.
+.SH "CONFIGURATION SECTION"
+Global settings for the file:
+.TP
+.B #include "filename"
+(OPTIONAL) Include another .pf file.
+Can appear on any line before task definitions.
+Example:
+.RS
+.EX
+#include "configs.pf"
+.EE
+.RE
+.TP
+.B DATE = DD/MM/YYYY
+Defines the date for records in this file.
+If omitted, the file modification date is used.
+Example:
+.RS
+.EX
+DATE = 13/05/2026
+.EE
+.RE
+.TP
+.B POMO = MINUTES
+Defines the duration of each pomodoro in minutes.
+If omitted, 30 minutes is used.
+Example:
+.RS
+.EX
+POMO = 120  
+.EE
+.RE
+.SH "ABBREVIATIONS SECTION"
+(OPTIONAL) Defines abbreviations for long subject names.
+Syntax:
+.RS
+.EX
+ABBREVIATION = Full Name
+.EE
+.RE
+Example:
+.RS
+.EX
+DS = Data Structures
+AI = Artificial Intelligence
+OS = Operating Systems
+.EE
+.RE
+.SH "TASKS SECTION"
+List of subjects/tasks with pomodoro counts.
+Syntax:
+.RS
+.EX
+SUBJECT_NAME: ****
+.EE
+.RE
+Each asterisk (*) represents ONE pomodoro.
+.PP
+Complete example:
+.RS
+.EX
+#include "configs.pf"
+
+DATE = 13/05/2026
+POMO = 120
+
+DS = Data Structures
+AI = Artificial Intelligence
+
+Portuguese: ****
+Mathematics: **
+DS: ***
+AI: *
+Physics: ***
+.EE
+.RE
+.SH "PROCESSING RULES"
+.IP 1. 4
+Blank lines are ignored
+.IP 2.
+Processing is case-sensitive
+.IP 3.
+Subject names cannot contain colons (:)
+.IP 4.
+Abbreviations must be defined before use
+.IP 5.
+Includes are processed first, recursively
+.SH "COMPLETE EXAMPLE"
+.EX
+#include "defaults.pf"
+
+DATE = 13/05/2026
+POMO = 50  
+
+DS = Data Structures
+OS = Operating Systems
+CALC = Differential Calculus
+
+Portuguese: ****   
+Mathematics: **   
+DS: ***          
+OS: *           
+CALC: *****    
+.EE
+.SH "TIME CALCULATION"
+Total time is calculated as:
+.PP
+.EX
+total_time = pomodoros × pomodoro_duration
+.EE
+.PP
+Example: 4 pomodoros × 120 minutes = 480 minutes = 8 hours
+.SH "LIMITATIONS"
+.IP \(bu 3
+Maximum 10 levels of recursive inclusion
+.SH "SEE ALSO"
+.BR pomointer (1),
+.BR date (1),
+.BR printf (1)
+.SH AUTHOR
+José Isac Araujo Monção <joseisac@tutamail.com>
+.SH HISTORY
+The format was created in 2026 for study time management.

@@ -1,0 +1,160 @@
+.\" pomointer(1) - Pomodoro tracker and reporter
+.\"
+.TH POMOINTER 1 "2026-02-04" "1.0" "Pomodoro Time Tracker"
+.SH NAME
+pomointer \- Process pomodoro files and generate time reports
+.SH SYNOPSIS
+.B pomointer
+[
+.B \-h
+]
+[
+.BI \-a " DATE"
+]
+[
+.BI \-b " DATE"
+]
+[
+.BI \-s " SUBJECTS"
+]
+[
+.BI \-e " FORMAT"
+]
+.I FILE...
+.SH DESCRIPTION
+The
+.B pomointer
+program processes files containing pomodoro session records (time management technique) and generates detailed reports of time invested in different tasks or subjects.
+.PP
+The program reads files with a specific format (documented in
+.BR pomofile (5))
+that contain:
+.IP \(bu 3
+Date definition (optional)
+.IP \(bu 3
+Pomodoro duration (optional)
+.IP \(bu 3
+Abbreviation definitions
+.IP \(bu 3
+Task list with pomodoro counts
+.PP
+For each file, the program:
+.IP 1. 3
+Processes
+.B #include
+directives (optional)
+.IP 2.
+Looks for date definition (
+.BR DATE
+variable) or uses file modification date
+.IP 3.
+Looks for pomodoro duration (
+.BR POMO
+variable) or uses 30 minutes as default
+.IP 4.
+Processes abbreviation definitions
+.IP 5.
+Processes task lines with pomodoro counts
+.IP 6.
+Generates formatted report
+.SH OPTIONS
+.TP
+.B \-h
+Display this help message and exit.
+.TP
+.BI \-a " DD/MM/YYYY"
+Filter output to show only data from days AFTER this date (inclusive).
+Date must be in DD/MM/YYYY format.
+.TP
+.BI \-b " DD/MM/YYYY"
+Filter output to show only data from days BEFORE this date (inclusive).
+Date must be in DD/MM/YYYY format.
+.TP
+.BI \-s " SUBJECT1,SUBJECT2,...,SUBJECTN"
+Filter output to show only the specified subjects.
+Subjects must be comma-separated, without spaces.
+.TP
+.BI \-e " FORMAT"
+Specify output format. Currently supports:
+.RS
+.IP "html" 8
+Generate HTML output with tables and CSS styling
+.RE
+.SH EXAMPLES
+.PP
+Process a basic file:
+.RS
+.PP
+.B pomointer
+.I study.pf
+.RE
+.PP
+Process multiple files:
+.RS
+.PP
+.B pomointer
+.I week1.pf week2.pf
+.RE
+.PP
+Filter by date (after May 10, 2024):
+.RS
+.PP
+.B pomointer \-a 10/05/2024
+.I *.pf
+.RE
+.PP
+Filter by date range (between May 1 and May 15, 2024):
+.RS
+.PP
+.B pomointer \-a 01/05/2024 \-b 15/05/2024
+.I record.pf
+.RE
+.PP
+Filter by specific subjects:
+.RS
+.PP
+.B pomointer \-s "Portuguese,Mathematics"
+.I study.pf
+.RE
+.PP
+Generate HTML report:
+.RS
+.PP
+.B pomointer \-e html
+.I report.pf
+.RS
+> report.html
+.RE
+.RE
+.SH OUTPUT
+Default (text) output shows:
+.PP
+.EX
+Date 13/05/2026 - Pomodoro Length: 2h
+
+Portuguese:
+🍅🍅🍅🍅 -> 8h
+Mathematics:
+🍅🍅 -> 4h
+Data Structures:
+🍅🍅🍅 -> 6h
+.EE
+.PP
+With the
+.BR \-e html
+option, output is a formatted HTML document with tables and CSS styling.
+.SH DEFAULT VALUES
+.IP \(bu 3
+Pomodoro duration: 30 minutes (if not specified in file)
+.IP \(bu 3
+Date: file modification date (if not specified in file)
+.IP \(bu 3
+Output format: text
+.SH "SEE ALSO"
+.BR pomofile (5),
+.BR grep (1),
+.BR find (1)
+.SH AUTHOR
+José Isac Araujo Monção <joseisac@tutamail.com>
+.SH COPYRIGHT
+Copyright © 2026. Licensed under the 3-Clause BSD License.
