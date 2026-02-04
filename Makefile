@@ -6,6 +6,7 @@ OBJS = ${SRCS:.c=.o}
 EXAMPLES = examples
 
 PREFIX = /usr/local
+MANPREFIX = ${PREFIX}/share/man
 
 PROGRAM_NAME = pomointer
 
@@ -25,10 +26,13 @@ run:
 	build/${PROGRAM_NAME} ${EXAMPLES}/example1.txt
 
 install: all
-	cp build/${PROGRAM_NAME} ${PREFIX}/bin
+	cp -f build/${PROGRAM_NAME} ${PREFIX}/bin
+	cp -f doc/man/man1/pomointer.1 ${MANPREFIX}/man1/pomointer.1
+	cp -f doc/man/man5/pomofile.5 ${MANPREFIX}/man5/pomofile.5
 
 uninstall:
 	rm ${PREFIX}/bin/${PROGRAM_NAME}
+	rm ${MANPREFIX}/man1/pomointer.1 ${MANPREFIX}/man5/pomofile.5
 
 clean:
 	rm -rf build ${OBJS}
