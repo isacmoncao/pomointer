@@ -4,8 +4,7 @@ pomointer is the only pomofile interpreter in the world.
 
 A pomofile is a text file containing information about
 how many pomodoros you spent doing a task. 
-See examples/ directory for examples, also check
-pomofile(5) man page.
+See examples/ directory for examples.
 
 If you want to see a example in action run
     
@@ -31,7 +30,7 @@ Then, enter the following command to build and install
 
 Running pomointer
 -----------------
-See pomointer(1) man page for usage information or run
+Run for usage information:
 
       pomointer -h
 
