@@ -1,3 +1,9 @@
+/*
+ * pomointer - .pf file interpreter
+ * Copyright (c) 2026 José Isac Araujo Monção
+ * 
+ * See LICENSE file for full BSD 3-Clause license terms.
+ */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
