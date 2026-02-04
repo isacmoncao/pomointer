@@ -1,12 +1,13 @@
 pomointer - pomofile interpreter
 ================================
-pomointer is the only pomofile interpreter in the world.
+pomointer is the first pomofile interpreter in the world.
 
 A pomofile is a text file containing information about
 how many pomodoros you spent doing a task. 
-See examples/ directory for examples.
+See examples/ directory for examples, also check
+pomofile(5) man page.
 
-If you want to see a example in action run
+If you want to see an example in action run
     
     make
     make run_all
@@ -30,7 +31,7 @@ Then, enter the following command to build and install
 
 Running pomointer
 -----------------
-Run for usage information:
+See pomointer(1) man page for usage information or run
 
       pomointer -h
 
