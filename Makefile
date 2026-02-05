@@ -9,7 +9,7 @@ PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
 PROGRAM_NAME = pomointer
-VERSION = 1.0
+VERSION = 1.0.1
 
 %.o: %.c
 	${CC} -c ${CFLAGS} -I${INCLUDE_DIR} $< -o $@
