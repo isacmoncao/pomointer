@@ -23,7 +23,7 @@ run_many:
 	build/${PROGRAM_NAME} ${EXAMPLES}/example*
 
 run:
-	build/${PROGRAM_NAME} ${EXAMPLES}/example1.txt
+	build/${PROGRAM_NAME} ${EXAMPLES}/example1.pf
 
 install: all
 	cp -f build/${PROGRAM_NAME} ${PREFIX}/bin
