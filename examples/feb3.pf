@@ -1,0 +1,8 @@
+#include "config.pf"
+
+POMO = 25
+DATE = 03/02/2026
+
+Calc: *****
+DC: **
+Py: ****

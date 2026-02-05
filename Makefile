@@ -20,10 +20,10 @@ ${PROGRAM_NAME}: ${OBJS}
 	${CC} -o build/${PROGRAM_NAME} ${OBJS}
 
 run_many:
-	build/${PROGRAM_NAME} ${EXAMPLES}/example*
+	build/${PROGRAM_NAME} ${EXAMPLES}/feb*
 
 run:
-	build/${PROGRAM_NAME} ${EXAMPLES}/example1.pf
+	build/${PROGRAM_NAME} ${EXAMPLES}/feb1.pf
 
 install: all
 	cp -f build/${PROGRAM_NAME} ${PREFIX}/bin

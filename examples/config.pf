@@ -1,4 +1,10 @@
-POMO = 25
-Port = Portugues
-Mat = Matematica
-CS = Computer Science
+POMO = 20
+
+Calc = Differential Calculus 
+DC = Digital Circuits
+ML = Mathematical Logic
+Py = Python
+Asm = x86_64 Assembly
+
+WR = Writting reports
+RBB = Reading boring book
