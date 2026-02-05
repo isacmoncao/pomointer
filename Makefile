@@ -9,6 +9,7 @@ PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
 PROGRAM_NAME = pomointer
+VERSION = 1.0
 
 %.o: %.c
 	${CC} -c ${CFLAGS} -I${INCLUDE_DIR} $< -o $@
@@ -27,8 +28,18 @@ run:
 
 install: all
 	cp -f build/${PROGRAM_NAME} ${PREFIX}/bin
-	cp -f doc/man/man1/pomointer.1 ${MANPREFIX}/man1/pomointer.1
-	cp -f doc/man/man5/pomofile.5 ${MANPREFIX}/man5/pomofile.5
+	chmod 755 ${PREFIX}/bin/${PROGRAM_NAME}
+	sed  "s/VERSION/${VERSION}/g" < doc/man/man1/pomointer.1 > ${MANPREFIX}/man1/pomointer.1
+	sed  "s/VERSION/${VERSION}/g" < doc/man/man5/pomofile.5 > ${MANPREFIX}/man5/pomofile.5
+	chmod 644 ${MANPREFIX}/man1/pomointer.1
+	chmod 644 ${MANPREFIX}/man5/pomofile.5
+
+dist: clean
+	mkdir -p ${PROGRAM_NAME}-${VERSION}
+	cp -R LICENSE Makefile README doc examples include src ${PROGRAM_NAME}-${VERSION}
+	tar -cf ${PROGRAM_NAME}-${VERSION}.tar ${PROGRAM_NAME}-${VERSION}
+	xz ${PROGRAM_NAME}-${VERSION}.tar
+	rm -rf ${PROGRAM_NAME}-${VERSION}
 
 uninstall:
 	rm ${PREFIX}/bin/${PROGRAM_NAME}
