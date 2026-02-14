@@ -29,6 +29,7 @@ run:
 install: all
 	cp -f build/${PROGRAM_NAME} ${PREFIX}/bin
 	chmod 755 ${PREFIX}/bin/${PROGRAM_NAME}
+	mkdir -p ${MANPREFIX}/man1 ${MANPREFIX}/man5
 	sed  "s/VERSION/${VERSION}/g" < doc/man/man1/pomointer.1 > ${MANPREFIX}/man1/pomointer.1
 	sed  "s/VERSION/${VERSION}/g" < doc/man/man5/pomofile.5 > ${MANPREFIX}/man5/pomofile.5
 	chmod 644 ${MANPREFIX}/man1/pomointer.1
