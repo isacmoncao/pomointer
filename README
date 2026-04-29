@@ -1,3 +1,8 @@
+DISCLAIMER 2026-04-28
+---------------------
+This software _sucks_. I will rewrite it from scratch, 
+but not in C, probably in Awk.
+
 pomointer - pomofile interpreter
 ================================
 pomointer is the first pomofile interpreter in the world.
